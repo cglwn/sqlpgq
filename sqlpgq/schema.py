@@ -114,22 +114,25 @@ class PropertyGraph:
     vertices: list[Type[VertexTable]] = field(default_factory=list)
     edges: list[Type[EdgeTable]] = field(default_factory=list)
 
-    def create_statement(self) -> str:
+    def create_statement(self, dialect: str = "duckdb") -> str:
         lines = [f"CREATE PROPERTY GRAPH {self.name}"]
 
         if self.vertices:
-            lines.append("  VERTEX TABLES (")
+            lines.append("VERTEX TABLES (")
             vertex_parts = []
             for v in self.vertices:
-                props = ", ".join(v.get_property_names())
-                vertex_parts.append(
-                    f"    {v.get_tablename()} LABEL {v.get_label()} PROPERTIES ({props})"
-                )
+                if dialect == "duckdb":
+                    vertex_parts.append(f"  {v.get_tablename()} LABEL {v.get_label()}")
+                else:
+                    props = ", ".join(v.get_property_names())
+                    vertex_parts.append(
+                        f"  {v.get_tablename()} LABEL {v.get_label()} PROPERTIES ({props})"
+                    )
             lines.append(",\n".join(vertex_parts))
-            lines.append("  )")
+            lines.append(")")
 
         if self.edges:
-            lines.append("  EDGE TABLES (")
+            lines.append("EDGE TABLES (")
             edge_parts = []
             for e in self.edges:
                 source_col, source_vertex = e.get_source()
@@ -137,20 +140,27 @@ class PropertyGraph:
                 source_pk = source_vertex.get_primary_key() or "id"
                 dest_pk = dest_vertex.get_primary_key() or "id"
 
-                props = e.get_property_names()
-                props_clause = (
-                    f"PROPERTIES ({', '.join(props)})" if props else "NO PROPERTIES"
-                )
-
-                edge_parts.append(
-                    f"    {e.get_tablename()}\n"
-                    f"      SOURCE KEY ({source_col}) REFERENCES {source_vertex.get_tablename()} ({source_pk})\n"
-                    f"      DESTINATION KEY ({dest_col}) REFERENCES {dest_vertex.get_tablename()} ({dest_pk})\n"
-                    f"      LABEL {e.get_label()}\n"
-                    f"      {props_clause}"
-                )
+                if dialect == "duckdb":
+                    edge_parts.append(
+                        f"  {e.get_tablename()}\n"
+                        f"    SOURCE KEY ({source_col}) REFERENCES {source_vertex.get_tablename()} ({source_pk})\n"
+                        f"    DESTINATION KEY ({dest_col}) REFERENCES {dest_vertex.get_tablename()} ({dest_pk})\n"
+                        f"    LABEL {e.get_label()}"
+                    )
+                else:
+                    props = e.get_property_names()
+                    props_clause = (
+                        f"PROPERTIES ({', '.join(props)})" if props else "NO PROPERTIES"
+                    )
+                    edge_parts.append(
+                        f"  {e.get_tablename()}\n"
+                        f"    SOURCE KEY ({source_col}) REFERENCES {source_vertex.get_tablename()} ({source_pk})\n"
+                        f"    DESTINATION KEY ({dest_col}) REFERENCES {dest_vertex.get_tablename()} ({dest_pk})\n"
+                        f"    LABEL {e.get_label()}\n"
+                        f"    {props_clause}"
+                    )
             lines.append(",\n".join(edge_parts))
-            lines.append("  )")
+            lines.append(")")
 
         return "\n".join(lines) + ";"
 

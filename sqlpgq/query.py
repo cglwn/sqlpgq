@@ -127,6 +127,15 @@ class Edge:
             return f"-[{inner}]-{quantifier}"
 
 
+_edge_counter = 0
+
+
+def _next_edge_alias() -> str:
+    global _edge_counter
+    _edge_counter += 1
+    return f"_e{_edge_counter}"
+
+
 @dataclass
 class PartialPath:
     source: Node
@@ -135,10 +144,16 @@ class PartialPath:
     forward: bool
 
     def __rshift__(self, target: Node) -> PathPattern:
-        return PathPattern(self.source, self.edge, target, self.directed, self.forward)
+        edge = self.edge
+        if edge.alias is None:
+            edge = Edge(alias=_next_edge_alias(), label=edge.label, min_hops=edge.min_hops, max_hops=edge.max_hops)
+        return PathPattern(self.source, edge, target, self.directed, self.forward)
 
     def __sub__(self, target: Node) -> PathPattern:
-        return PathPattern(self.source, self.edge, target, directed=False, forward=True)
+        edge = self.edge
+        if edge.alias is None:
+            edge = Edge(alias=_next_edge_alias(), label=edge.label, min_hops=edge.min_hops, max_hops=edge.max_hops)
+        return PathPattern(self.source, edge, target, directed=False, forward=True)
 
 
 @dataclass
@@ -210,8 +225,7 @@ class Query:
         )
 
     def to_sql(self) -> str:
-        column_strs = [c.to_sql() for c in self.column_defs]
-        columns_clause = ", ".join(column_strs) if column_strs else "*"
+        select_columns = ", ".join(c.alias for c in self.column_defs) if self.column_defs else "*"
 
         match_patterns = ",\n        ".join(p.to_sql() for p in self.patterns)
 
@@ -222,7 +236,7 @@ class Query:
 
         columns_inner = ", ".join(c.to_sql() for c in self.column_defs)
 
-        sql = f"""SELECT {columns_clause} FROM GRAPH_TABLE ({self.graph.name}
+        sql = f"""SELECT {select_columns} FROM GRAPH_TABLE ({self.graph.name}
   MATCH {match_patterns}{where_clause}
   COLUMNS ({columns_inner})
 )"""
