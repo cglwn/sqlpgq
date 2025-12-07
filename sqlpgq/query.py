@@ -12,7 +12,7 @@ class PropertyRef:
     element_name: str
     property_name: str
 
-    def __eq__(self, other: Any) -> "Condition":  # type: ignore[override]
+    def __eq__(self, other: Any) -> Condition:  # type: ignore[override]
         return Condition(self, "=", other)
 
     def __ne__(self, other: Any) -> "Condition":  # type: ignore[override]
@@ -63,15 +63,15 @@ class Node:
             raise AttributeError(attr)
         return PropertyRef(self.alias, attr)
 
-    def __rshift__(self, edge: "Edge") -> "PartialPath":
+    def __rshift__(self, edge: Edge) -> PartialPath:
         return PartialPath(self, edge, directed=True, forward=True)
 
-    def __rrshift__(self, other: "PartialPath") -> "PathPattern":
+    def __rrshift__(self, other: PartialPath) -> PathPattern:
         return PathPattern(
             other.source, other.edge, self, other.directed, other.forward
         )
 
-    def __sub__(self, edge: "Edge") -> "PartialPath":
+    def __sub__(self, edge: Edge) -> PartialPath:
         return PartialPath(self, edge, directed=False, forward=True)
 
     def to_sql(self) -> str:
@@ -98,10 +98,10 @@ class Edge:
             raise ValueError("Edge must have an alias to access properties")
         return PropertyRef(self.alias, attr)
 
-    def __rsub__(self, other: "PartialPath") -> "PathPattern":
+    def __rsub__(self, other: PartialPath) -> PathPattern:
         return PathPattern(other.source, other.edge, self, directed=False, forward=True)  # type: ignore
 
-    def repeat(self, min_hops: int, max_hops: int) -> "Edge":
+    def repeat(self, min_hops: int, max_hops: int) -> Edge:
         return Edge(
             alias=self.alias,
             label=self.label,
@@ -134,10 +134,10 @@ class PartialPath:
     directed: bool
     forward: bool
 
-    def __rshift__(self, target: Node) -> "PathPattern":
+    def __rshift__(self, target: Node) -> PathPattern:
         return PathPattern(self.source, self.edge, target, self.directed, self.forward)
 
-    def __sub__(self, target: Node) -> "PathPattern":
+    def __sub__(self, target: Node) -> PathPattern:
         return PathPattern(self.source, self.edge, target, directed=False, forward=True)
 
 
@@ -166,13 +166,13 @@ class ColumnDef:
 
 @dataclass
 class Query:
-    graph: "PropertyGraph"
+    graph: PropertyGraph
     patterns: list[PathPattern] = field(default_factory=list)
     conditions: list[Condition] = field(default_factory=list)
     column_defs: list[ColumnDef] = field(default_factory=list)
     group_by_columns: list[str] = field(default_factory=list)
 
-    def match(self, *patterns: PathPattern) -> "Query":
+    def match(self, *patterns: PathPattern) -> Query:
         return Query(
             graph=self.graph,
             patterns=self.patterns + list(patterns),
@@ -181,7 +181,7 @@ class Query:
             group_by_columns=self.group_by_columns,
         )
 
-    def where(self, condition: Condition) -> "Query":
+    def where(self, condition: Condition) -> Query:
         return Query(
             graph=self.graph,
             patterns=self.patterns,
@@ -190,7 +190,7 @@ class Query:
             group_by_columns=self.group_by_columns,
         )
 
-    def columns(self, **kwargs: PropertyRef) -> "Query":
+    def columns(self, **kwargs: PropertyRef) -> Query:
         new_cols = [ColumnDef(expr, alias) for alias, expr in kwargs.items()]
         return Query(
             graph=self.graph,
@@ -200,7 +200,7 @@ class Query:
             group_by_columns=self.group_by_columns,
         )
 
-    def group_by(self, *columns: str) -> "Query":
+    def group_by(self, *columns: str) -> Query:
         return Query(
             graph=self.graph,
             patterns=self.patterns,

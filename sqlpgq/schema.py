@@ -154,7 +154,7 @@ class PropertyGraph:
 
         return "\n".join(lines) + ";"
 
-    def query(self) -> "Query":
+    def query(self) -> Query:
         from sqlpgq.query import Query
 
         return Query(self)
