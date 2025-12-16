@@ -7,10 +7,10 @@ name = "sqlpgq"
 requires-python = ">=3.12"
 dynamic = ["version"]
 readme = "README.md"
-description = "Python ORM for SQL/PGQ (Property Graph Queries)"
+description = "SQL/PGQ (Property Graph Queries) for Python"
 authors = [{ name = "James Cagalawan" }]
 license = { text = "GPL-3.0-or-later" }
-keywords = ["sql", "pgq", "graph", "orm", "property-graph"]
+keywords = ["sql", "pgq", "graph", "property-graph"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
