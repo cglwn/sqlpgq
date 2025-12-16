@@ -146,13 +146,23 @@ class PartialPath:
     def __rshift__(self, target: Node) -> PathPattern:
         edge = self.edge
         if edge.alias is None:
-            edge = Edge(alias=_next_edge_alias(), label=edge.label, min_hops=edge.min_hops, max_hops=edge.max_hops)
+            edge = Edge(
+                alias=_next_edge_alias(),
+                label=edge.label,
+                min_hops=edge.min_hops,
+                max_hops=edge.max_hops,
+            )
         return PathPattern(self.source, edge, target, self.directed, self.forward)
 
     def __sub__(self, target: Node) -> PathPattern:
         edge = self.edge
         if edge.alias is None:
-            edge = Edge(alias=_next_edge_alias(), label=edge.label, min_hops=edge.min_hops, max_hops=edge.max_hops)
+            edge = Edge(
+                alias=_next_edge_alias(),
+                label=edge.label,
+                min_hops=edge.min_hops,
+                max_hops=edge.max_hops,
+            )
         return PathPattern(self.source, edge, target, directed=False, forward=True)
 
 
@@ -225,7 +235,9 @@ class Query:
         )
 
     def to_sql(self) -> str:
-        select_columns = ", ".join(c.alias for c in self.column_defs) if self.column_defs else "*"
+        select_columns = (
+            ", ".join(c.alias for c in self.column_defs) if self.column_defs else "*"
+        )
 
         match_patterns = ",\n        ".join(p.to_sql() for p in self.patterns)
 

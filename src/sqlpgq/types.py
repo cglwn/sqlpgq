@@ -1,5 +1,3 @@
-
-
 class SQLType:
     sql_type: str = "TEXT"
 
