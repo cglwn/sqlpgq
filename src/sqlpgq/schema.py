@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Type, Sequence, TYPE_CHECKING
+from typing import Any, Type, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from sqlpgq.query import Query
