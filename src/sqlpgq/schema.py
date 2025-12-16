@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Type, Sequence
+from typing import Any, Type, Sequence, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from sqlpgq.query import Query
 
 
 @dataclass
@@ -24,6 +27,10 @@ class Column:
     @property
     def name(self) -> str | None:
         return self._name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self._name = value
 
 
 class TableMeta(type):
@@ -148,9 +155,11 @@ class PropertyGraph:
                         f"    LABEL {e.get_label()}"
                     )
                 else:
-                    props = e.get_property_names()
+                    prop_names = e.get_property_names()
                     props_clause = (
-                        f"PROPERTIES ({', '.join(props)})" if props else "NO PROPERTIES"
+                        f"PROPERTIES ({', '.join(prop_names)})"
+                        if prop_names
+                        else "NO PROPERTIES"
                     )
                     edge_parts.append(
                         f"  {e.get_tablename()}\n"
