@@ -3,14 +3,12 @@
 # Example
 With the DuckPGQ extension installed, create the following social network tables.
 ```sql
--- Users table
 CREATE TABLE users (
     id INTEGER PRIMARY KEY,
     name TEXT,
     age INTEGER
 );
 
--- Friendships table  
 CREATE TABLE friendships (
     id INTEGER PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
@@ -23,3 +21,8 @@ INSERT INTO friendships VALUES (1, 1, 2, '2020-01-01'), (2, 2, 3, '2021-06-15');
 ```
 
 Then run `examples/social_network.py` to see the generated SQL/PGQ graph queries.
+
+# Development
+- Run the tests with `uv run pytest`
+- Run the linter with `uvx ruff check .`
+- Run the formatter with `uvx ruff format .`
